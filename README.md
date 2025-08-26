@@ -52,18 +52,21 @@ module_init( initmodule );
 module_exit( exitmodule );
 ```
 # vulnrabillity
-ive read about kernel exploits and it helped me understand the vulnrabillity in this syscall : since the function doesnt check whether the parameters come from userspace or kernel space using functions such as
+places ive read about kernel exploits basics: 
+https://www.digitalwhisper.co.il/files/Zines/0x6F/DW111-1-LinuxKernelPwn.pdf, ( ive learned the most here tbh )
 
-places ive read about kernel exploits: 
-https://www.digitalwhisper.co.il/files/Zines/0x6F/DW111-1-LinuxKernelPwn.pdf, ( ive learned the most here tbh)
 https://www.youtube.com/watch?v=L9dJNJDIa5M&ab_channel=pwn.college ,
+
 https://www.isec.tugraz.at/wp-content/uploads/2024/09/09-kernel-exploitation.pdf
+
+ive read about kernel exploits and it helped me understand the vulnrabillity in this syscall : since the function doesnt check whether the parameters come from **user space** or **kernel space**, using functions such as
+
 
 <img width="1560" height="287" alt="Screenshot_137" src="https://github.com/user-attachments/assets/8731f3d2-7132-4ad1-a454-c4fc2fcec168" />
 
 we can overwrite other syscalls with commit_creds() and prepare_kernel_cred(0) functions. we will perform it using the line `out[i] = in[i]` that lets us overwrite everything in the second parameter with the first. we can open /proc/kallsyms file, that stores all the kernel symbols together with the grep command.
 
-
+the prepare_kernel_cred(0) returns a struct that have root premissions and commit_creds() commits it to the current user
 
 
 <img width="397" height="149" alt="Screenshot_139" src="https://github.com/user-attachments/assets/fe0acc2e-53c7-4476-b144-9e0a387ecbde" />
