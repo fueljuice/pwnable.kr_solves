@@ -63,3 +63,9 @@ we can overwrite other syscalls with commit_creds() and prepare_kernel_cred(0) f
 <img width="397" height="149" alt="Screenshot_139" src="https://github.com/user-attachments/assets/fe0acc2e-53c7-4476-b144-9e0a387ecbde" />
 
 
+# crafting the shellcode
+
+the crafting of the shell is the hard part since the system is 32bit ARM and we gotta watch out for the convertion of bytes that represent lowercase letters, and no null bytes.
+
+
+
