@@ -88,8 +88,13 @@ so we need to subtract 12 from the adresss of commit_creds: **0x8003f56c - 12 = 
 ive searched online and found that nop in arm can be simply be done with moving a register into itself, for example mov r0,r0 (btw this example is not valid since it contains null bytes in hexa that will fk up the syscall)
 
 
-<img width="1407" height="557" alt="Screenshot_143" src="https://github.com/user-attachments/assets/146ad540-0077-4044-9703-af443527426d" />
+<img width="1000" height="557" alt="Screenshot_143" src="https://github.com/user-attachments/assets/146ad540-0077-4044-9703-af443527426d" />
 
 heres the hexa version of it. we need 12 bytes so we will multiply it three times: "\x01\x10\xa0\xe1\x01\x10\xa0\xe1\x01\x10\xa0\xe1"
 
 
+
+and:
+
+
+<img width="485" height="139" alt="Screenshot_146" src="https://github.com/user-attachments/assets/8bba1f1b-9954-4b6c-a5ba-2c3ca188c4e9" />
