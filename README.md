@@ -11,7 +11,7 @@ the system provides us with root directory with one new executable, that the nor
 
 <img width="561" height="146" alt="Screenshot_147" src="https://github.com/user-attachments/assets/8944e093-2503-407f-93de-bb879a97c146" />
 
-in contrast to the original `exynos-mem (/dev/exynos-mem)`, which is a charcater device (a special handle into a kernel driver that lets you talk to memory-mapping functions.), this ctf version of the the file is an executable with root privilege
+in contrast to the original `exynos-mem (/dev/exynos-mem)`, which is a charcater device (a special handle into a kernel driver that lets you talk to memory-mapping functions.), this ctf version of the the file is an executable with root privilege. 
 
 <img width="567" height="41" alt="Screenshot_148" src="https://github.com/user-attachments/assets/9539a665-d618-4b82-b297-f9479345f2b3" />
 
@@ -20,14 +20,14 @@ it also asks for arguments:
 
 <img width="452" height="37" alt="Screenshot_149" src="https://github.com/user-attachments/assets/98853d06-fc9c-4876-8b68-ec2a637c3bfa" />
 
-the physical argv[1]: adress we want to map. argv[2]: how many bytes to map. argv[3]:if we want to read or write acsess
+the physical argv[1]: adress we want to map. argv[2]: how many bytes to map. argv[3]: r/w mode. from the arguemnts we can understand it only dumps bytes and can leak kernel adresses and can NOT patch or change them. in the original exploit the author leaked the adress of setuserid and patched its code so theres no root requirment. now the hard part of this pwn is to figure out how to get a priviliage escalation solely from leaking memory.
 
-# choose mapping
- we need to map the entire physical memory,sp lets check where it is located with `cat /proc/iomem`
+# exploit
+ we need to dump the entire physical memory,so lets check where it is located with `cat /proc/iomem`
  
  <img width="298" height="43" alt="Screenshot_150" src="https://github.com/user-attachments/assets/7bf6735b-3da7-45cf-8770-2ba482cc9958" />
 
-okay so weve got the first parameter to pass to exynos-mem: PHYSICAL_ADRESS = 0x60000000
+weve got the first parameter to pass to exynos-mem: PHYSICAL_ADRESS = 0x60000000
 
 for the bytesize, ill copy the original exploit's code and use
 ```c
