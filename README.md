@@ -21,3 +21,16 @@ it also asks for arguments:
 <img width="452" height="37" alt="Screenshot_149" src="https://github.com/user-attachments/assets/98853d06-fc9c-4876-8b68-ec2a637c3bfa" />
 
 the physical argv[1]: adress we want to map. argv[2]: how many bytes to map. argv[3]:if we want to read or write acsess
+
+# choose mapping
+ we need to map the entire physical memory,sp lets check where it is located with `cat /proc/iomem`
+ 
+ <img width="298" height="43" alt="Screenshot_150" src="https://github.com/user-attachments/assets/7bf6735b-3da7-45cf-8770-2ba482cc9958" />
+
+okay so weve got the first parameter to pass to exynos-mem: PHYSICAL_ADRESS = 0x60000000
+
+for the bytesize, ill copy the original exploit's code and use
+```c
+     int page_size = sysconf(_SC_PAGE_SIZE);
+     int length = page_size * page_size;
+```
