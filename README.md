@@ -218,3 +218,6 @@ p.sendline(payload)
 
 p.interactive()
 ```
+
+<img width="1878" height="944" alt="image" src="https://github.com/user-attachments/assets/1e87dd90-18be-4b0c-9954-3ab9b9dbb04c" />
+
