@@ -1,26 +1,27 @@
 # pwnable solves
 writeups for **some** of the pwnable.kr challenges i solved. theres a branch opened for each pwn
 # pwnable.co.il - objective
-The program is basically supposed to create a linked list. It has three functions for this: creating a Node, which allocates memory using glibc malloc and also allocates the Node’s data on the heap; editing an object, which allows changing the value of its data; and deleting an object.
+the program is basically supposed to create a linked list. it has three functions for this: creating a node, which allocates memory using glibc malloc and also allocates the nodes data on the heap, editing an object, which allows changing the value of its data and deleting an object.
 
-There are several vulnerabilities:
+there are several vulnerabilities:
 
-1. The object deletion function only frees the data, not the Node itself.
+1. the object deletion function only frees the data, not the Node itself.
 2. It is possible to edit the data of a Node even after it has been deleted.
 
-Idea: When an object is freed in modern glibc and its size is smaller than 0x420, it is inserted into a tcache bin, assuming there is available space in the tcache. If there are multiple chunks in the same tcache bin, they are connected with pointers and form a linked list. If I can change the pointer of one of the bins to a location of my choice, the next malloc will write to that location.
+# idea:
+when an object is freed in modern glibc and its size is smaller than 0x420, it is inserted into a tcache bin, assuming there is available space in the tcache. If there are multiple chunks in the same tcache bin, they are connected with pointers and form a linked list. if I can change the pointer of one of the bins to a location of my choice, the next malloc will write to that location.
 
-The place I want to write to is inside the data of the Node, because it holds a function pointer to the print function, which I can call if I overwrite it. To change the pointer, I can use the edit function.
+the place i want to write to is inside the data of the Node, because it holds a function pointer to the print function, which i can call if i overwrite it. to change the pointer, i can use the edit function.
 
-Another issue is that because of ASLR, I will not know where to jump. To solve this, I can free one of the Nodes and create a new Node. Because of the tcache allocation algorithm, the new Node will receive the data chunk of the previous Node, which contains the pointer to the next Node. I can print the data that contains this pointer and thereby leak a heap address, then calculate the offset from it.
+another issue is that because of ASLR, i will not know where to jump. To solve this, I can free one of the Nodes and create a new Node. Because of the tcache allocation algorithm, the new node will receive the data chunk of the previous node, which contains the pointer to the next node. i can print the data that contains this pointer and thereby leak a heap address, then calculate the offset from it.
 
 ## Exploit:
 
-I created four Nodes. Then I freed the last three. There was a bug that prevented freeing the first one. I created a new Node and used it to leak the heap address through the pointer stored in the data, as explained earlier.
+I created four nodes. then I freed the last three. there was a bug that prevented freeing the first one. I created a new node and used it to leak the heap address through the pointer stored in the data, as explained earlier.
 
-At this point, there were still four Nodes and two chunks in the tcache. I could access both of them using the edit function. I used the edit function to overwrite the tcache pointer with the address where the function pointer of the first Node is stored, based on the calculated offset.
+at this point, there were still four nodes and two chunks in the tcache. I could access both of them using the edit function. I used the edit function to overwrite the tcache pointer with the address where the function pointer of the first Node is stored, based on the calculated offset.
 
-Then I allocated another Node and set its data to the address of the win() function. This address was written into the function pointer. Finally, I used the print function, which called win().
+then I allocated another node and set its data to the address of the win() function. this address was written into the function pointer. finally, I used the print function, which called win().
 
 ```py
 from pwn import *
@@ -30,28 +31,20 @@ HEAP_BASE_OFFSET = 134272
 WIN_ADDR = p64(0x401296)
 
 def alocObj(data):
-    sleep(0.5)
     p.sendline(b"1")
-    sleep(0.5)
     p.sendline(b"3")
-    sleep(0.5)
     if data == "":
         p.sendline(data)
     else:
         p.sendline(data)
 
 def delObj(objNum):
-    sleep(0.5)
     p.sendline(b"3")
-    sleep(0.5)
     p.sendline(objNum)
 
 def editObj(objNum, data):
-    sleep(0.5)
     p.send(b"2\n")
-    sleep(0.5)
     p.sendline(objNum)
-    sleep(0.5)
     p.sendline(data)
 
 
