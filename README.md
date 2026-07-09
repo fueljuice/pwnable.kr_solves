@@ -15,16 +15,41 @@ looking at main, we can see it calls 2 constructors ive named computer (enemy) a
 after the player win around 10 round he gets the oprutiniy to cheat with a cheat menu which has a BOF with unprotected std::cin read into a buffer. however theres a canary so its practically useless for now<br>
 
 xref `std::cin` unviels 2 more vulns. 1 which is in one of the "ghost" which is again unhelpful due to the canary and the other is a heap BOF that reads 300 characters into a 256 buffer and only acsessible after a certain level in the game. (below)
+
 <img width="956" height="202" alt="image" src="https://github.com/user-attachments/assets/ff8bf9b5-e0cf-4812-a2f2-3b705890ecf3" />
+
 this function is defined in the Unit class as virtual and is inherited into every derived character. that i infer from the static vtable (ro)data (look at Unit_asciiartwork) (this happens since vtables are figured in compile time):
+
 <img width="1048" height="428" alt="image" src="https://github.com/user-attachments/assets/bd34cb1b-5b4c-40c5-85b8-2c88b9c9cd1d" />
 unfortunately, this code never get called intentionally.<br> in ordrer to acttualy execute this code we need to use another less visible bug.
+
 <img width="582" height="228" alt="image" src="https://github.com/user-attachments/assets/e62e67d1-4220-47e0-9d8d-f3dd80426eee" />
 
 if we take a look into the `Templar` ctor we see that it has a field (a1+312) that holds a pointer to itself. and in each of the functions in the `Templar`'s uses that pointer to store the stats and call attack instead of the actual pointer. in cpp look something like `this->objPtr->vptr[8]()` instead of  just `this->vptr[8]()`. this is fine by itself, but one of the attack options of templar is morphing into a diffrent character by changing this objPtr into an Arcon() object (see below)
+
 <img width="819" height="314" alt="image" src="https://github.com/user-attachments/assets/6fc90d37-2871-4d36-9764-6e62fb9dcbb8" />
+
 after that, every attack will follow this route:
+
 <img width="786" height="463" alt="image" src="https://github.com/user-attachments/assets/22018040-e25e-48ef-90d9-e70964093789" />
+
 as you can see it will try to call a function from the **objPtr** which points to **Arcon vptr** by that it will try to reach arconVptr[0x00/0x40/0x48/0x50] which if we look at the rodata:
+
 <img width="696" height="275" alt="image" src="https://github.com/user-attachments/assets/018c57a9-293b-4975-ae76-5ac2e97db84b" />
-**allows us to jump straight into the heap bof function**
+
+**allows us to jump straight into the heap bof function** (unit ascii artwork function)
+
+## exploitation
+
+the Unit class is built like this <br>
+[256 bytes of ascii artwork][8 bytes of &exit][character data like shield and HP ? bytes][std::string object 16 bytes heap metada + 8 bytes size + 8 bytes capacity...]<br>
+the reason for the &exit function pointer is because it gets called as a "trap" on lose (a1+296):
+
+<img width="761" height="215" alt="image" src="https://github.com/user-attachments/assets/09bf4c41-ed06-4650-ad5b-7cefb397063e" />
+
+in order to acttualy overwrite the functionptr and use it we need to first leak libc. that can be done by overwriting the size field in the std::string object to a bigger number and itll make it leak the heap. luckily right below the arcon heap block sits the enemies heap block that also conatains the &exit function ptr. so we simply leak it and find libc. after that we can use one_gadget and get a shell. **unfortuantely** theres no one_gadget avaible in the libc of the chall. instead we need to use a more clever trick ive thought of. first we overwrite the function pointer with a `asm add rsp, 0xsomeoffset; ret` secondly, we utilize the previous cheat menu stack BOF to overwrite a portion of the heap with ropchain for exmaple [pop rdi ret gadgdet][binsh string][system]. now when it will run. itll shift the stack pointer into the ropchain and get a shell:
+
+<img width="610" height="462" alt="Screenshot_187" src="https://github.com/user-attachments/assets/d330e9b2-6791-4baa-bccd-6034ac57f9d6" />
+
+
+
